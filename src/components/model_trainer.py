@@ -14,14 +14,16 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
 from xgboost import XGBRegressor
 
+
+
 from src.exception import CustomException
 from src.logger import logging
 
-from src.utils import save_object
+from src.utils import save_object,evaluate_models
 
 @dataclass
 class ModelTrainerConfig:
-    trained_model_file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "artifacts", "model.pkl")
+    trained_model_file_path=os.path.join("artifacts","model.pkl")
 
 class ModelTrainer:
     def __init__(self):
@@ -84,7 +86,8 @@ class ModelTrainer:
                 
             }
 
-            model_report: dict = self.evaluate_models(X_train, y_train, X_test, y_test, models)
+            model_report:dict=evaluate_models(X_train=X_train,y_train=y_train,X_test=X_test,y_test=y_test,
+                                             models=models,param=params)
             
             ## To get best model score from dict
             best_model_score = max(sorted(model_report.values()))
@@ -109,22 +112,10 @@ class ModelTrainer:
 
             r2_square = r2_score(y_test, predicted)
             return r2_square
+            
+
+
+
+            
         except Exception as e:
-            raise CustomException(e, sys)
-
-    def evaluate_models(self, X_train, y_train, X_test, y_test, models):
-        report = {}
-        for model_name, model in models.items():
-            model.fit(X_train, y_train)  # Train model
-
-            y_train_pred = model.predict(X_train)
-
-            y_test_pred = model.predict(X_test)
-
-            train_model_score = r2_score(y_train, y_train_pred)
-
-            test_model_score = r2_score(y_test, y_test_pred)
-
-            report[model_name] = test_model_score
-
-        return report
+            raise CustomException(e,sys)
